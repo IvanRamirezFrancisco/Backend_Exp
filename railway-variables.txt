@@ -1,0 +1,24 @@
+# Variables a agregar manualmente en Railway Dashboard
+
+## Variables de configuración básica:
+JWT_SECRET=tu-jwt-secret-super-seguro-minimo-32-caracteres
+FRONTEND_URL=https://tu-dominio-frontend.up.railway.app
+PORT=8080
+
+## Variables de email (escoge uno):
+# Opción 1: Brevo
+BREVO_API_KEY=xkeysib-XXXXXX
+
+# Opción 2: Resend
+RESEND_API_KEY=re_XXXXXX
+
+# Opción 3: SMTP Manual
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_USERNAME=tu-usuario-smtp
+MAIL_PASSWORD=tu-password-smtp
+
+## Variables de SMS:
+TEXTBELT_API_KEY=tu-textbelt-api-key
+
+## Nota: Las variables de MySQL se autocompletan con el servicio de Railway
+## No necesitas configurar MYSQLHOST, MYSQLPORT, etc.
