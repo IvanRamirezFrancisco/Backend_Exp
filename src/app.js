@@ -42,6 +42,7 @@ if (process.env.FRONTEND_URL) {
 
 // Agregar dominios Railway comunes
 if (process.env.NODE_ENV === 'production') {
+  allowedOrigins.push('https://frontendmig-production.up.railway.app');
   allowedOrigins.push('https://fronlogin-production.up.railway.app');
   allowedOrigins.push(/^https:\/\/.*\.railway\.app$/); // Cualquier subdominio Railway
 }
