@@ -51,12 +51,19 @@ class EmailService {
       
       const emailData = {
         sender: {
-          name: "AuthSystem",
+          name: "AuthSystem - Verificación de Cuenta",
           email: this.fromEmail
         },
         to: [{ email: email, name: firstName }],
-        subject: "Confirma tu cuenta - AuthSystem",
-        htmlContent: this.buildVerificationEmailTemplate(firstName, verificationUrl, token)
+        subject: `✅ ${firstName}, confirma tu cuenta en AuthSystem`,
+        htmlContent: this.buildVerificationEmailTemplate(firstName, verificationUrl, token),
+        textContent: `Hola ${firstName}, confirma tu cuenta en AuthSystem usando este enlace: ${verificationUrl} o este código: ${token}`,
+        headers: {
+          "X-Mailer": "AuthSystem v1.0",
+          "List-Unsubscribe": `<mailto:unsubscribe@authsystem.com>`,
+          "X-Priority": "1"
+        },
+        tags: ["verification", "authentication", "account-setup"]
       };
 
       console.log('🔧 DEBUG: Brevo API Key presente =', !!this.brevoApiKey);
@@ -84,36 +91,59 @@ class EmailService {
   buildVerificationEmailTemplate(firstName, verificationUrl, token) {
     return `
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Cuenta - AuthSystem</title>
     <style>
-        .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
-        .header { background-color: #007bff; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; text-align: center; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+        .content { padding: 40px 30px; text-align: center; }
+        .welcome { font-size: 18px; color: #2c3e50; margin-bottom: 20px; }
+        .message { font-size: 16px; color: #555; margin-bottom: 30px; line-height: 1.8; }
         .button {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
-            padding: 15px 30px;
+            padding: 16px 40px;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
             display: inline-block;
             margin: 20px 0;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
+        .button:hover { transform: translateY(-2px); }
+        .divider { margin: 30px 0; height: 1px; background: linear-gradient(to right, transparent, #ddd, transparent); }
         .token {
-            background-color: #f1f1f1;
-            padding: 15px;
-            font-family: monospace;
-            font-size: 18px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
             text-align: center;
-            margin: 20px 0;
-            border-radius: 5px;
+            margin: 25px 0;
+            border-radius: 8px;
             border: 2px solid #007bff;
-            color: #333;
+            color: #2c3e50;
             word-break: break-all;
+            letter-spacing: 1px;
+            font-weight: 600;
         }
+        .instructions { background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }
+        .instructions h3 { color: #1976d2; margin-bottom: 10px; font-size: 16px; }
+        .instructions p { color: #555; font-size: 14px; }
         .warning {
-            color: #e74c3c;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
             font-size: 14px;
             margin-top: 20px;
         }
@@ -132,23 +162,36 @@ class EmailService {
             <h1>🎉 Bienvenido a AuthSystem</h1>
         </div>
         <div class="content">
-            <h2>Hola ${firstName}</h2>
-            <p>Gracias por registrarte en AuthSystem. Para completar tu registro, necesitamos verificar tu dirección de email.</p>
+            <div class="welcome">¡Hola ${firstName}! 👋</div>
+            <div class="message">
+                Gracias por registrarte en <strong>AuthSystem</strong>. Para completar tu registro y asegurar tu cuenta, necesitamos verificar tu dirección de email.
+            </div>
             
-            <h3>Opción 1: Click en el botón</h3>
-            <a href="${verificationUrl}" class="button">Verificar mi cuenta</a>
+            <div class="instructions">
+                <h3>🔗 Opción 1: Verificación automática</h3>
+                <p>Haz clic en el botón verde para verificar tu cuenta instantáneamente:</p>
+            </div>
+            <a href="${verificationUrl}" class="button">✅ Verificar mi cuenta ahora</a>
             
-            <h3>Opción 2: Usa este código</h3>
+            <div class="divider"></div>
+            
+            <div class="instructions">
+                <h3>🔑 Opción 2: Código manual</h3>
+                <p>Si el botón no funciona, copia este código en la aplicación:</p>
+            </div>
             <div class="token">${token}</div>
-            <p>Copia y pega este código en la aplicación para verificar tu cuenta.</p>
             
-            <p><strong>Este enlace y código expiran en 24 horas.</strong></p>
+            <div class="instructions">
+                <h3>⏱️ Información importante</h3>
+                <p><strong>Este enlace y código son válidos por 24 horas</strong></p>
+                <p>Después de ese tiempo necesitarás solicitar un nuevo código.</p>
+            </div>
             
             <div class="warning">
-                <strong>🛡️ Importante:</strong><br>
-                • Si no te registraste en AuthSystem, ignora este email.<br>
-                • Nunca compartas este código con nadie.<br>
-                • Si tienes dudas, contacta a nuestro soporte.
+                <strong>🛡️ Seguridad:</strong><br>
+                • Si no creaste esta cuenta, simplemente ignora este email<br>
+                • Nunca compartas este código con otras personas<br>
+                • AuthSystem jamás te pedirá tu contraseña por email
             </div>
         </div>
         <div class="footer">

@@ -53,12 +53,56 @@ const registerValidation = [
       gmail_remove_subaddress: false
     })
     .custom(async (email) => {
-      // Verificar dominios educativos válidos si es necesario
-      const validEducationalDomains = ['uthh.edu.mx', 'gmail.com', 'hotmail.com', 'outlook.com'];
+      // Validación profesional y permisiva para todos los dominios
       const domain = email.split('@')[1];
       
-      if (email.includes('@uthh.edu.mx') && !/^\d{8}@uthh\.edu\.mx$/.test(email)) {
-        throw new Error('El formato de email institucional debe ser: 12345678@uthh.edu.mx');
+      if (!domain) {
+        throw new Error('Formato de email inválido');
+      }
+      
+      // Lista amplia de dominios válidos reconocidos
+      const trustedDomains = [
+        // Educativos México
+        'uthh.edu.mx', 'unam.mx', 'itesm.mx', 'ipn.mx', 'uam.mx', 'tecnm.mx',
+        'udg.mx', 'uanl.mx', 'buap.mx', 'uv.mx', 'uat.edu.mx',
+        
+        // Personales y comerciales
+        'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
+        'icloud.com', 'me.com', 'mac.com', 'aol.com', 'protonmail.com',
+        
+        // Gubernamentales
+        'gob.mx', 'sep.gob.mx', 'salud.gob.mx', 'gov', 'gov.mx'
+      ];
+      
+      // Patrones de dominios válidos
+      const validPatterns = [
+        /\.edu$/,           // .edu (educativos US)
+        /\.edu\.[a-z]{2}$/,  // .edu.mx, .edu.ar, etc.
+        /\.ac\.[a-z]{2}$/,   // .ac.uk, etc.
+        /\.com$/,           // .com
+        /\.com\.[a-z]{2}$/,  // .com.mx, etc.
+        /\.org$/,           // .org
+        /\.net$/,           // .net
+        /\.gov$/,           // .gov
+        /\.gob\.[a-z]{2}$/,  // .gob.mx, etc.
+        /\.[a-z]{2}$/,      // códigos de país (mx, ar, es, etc.)
+      ];
+      
+      // Verificar si el dominio está en la lista de confianza o sigue un patrón válido
+      const isDomainValid = trustedDomains.includes(domain) || 
+                           validPatterns.some(pattern => pattern.test(domain));
+      
+      if (!isDomainValid) {
+        // Para dominios desconocidos, verificar estructura básica
+        const parts = domain.split('.');
+        if (parts.length < 2 || parts.some(part => part.length < 1)) {
+          throw new Error('Dominio de email inválido');
+        }
+      }
+      
+      // Validación adicional: el email no debe ser demasiado largo
+      if (email.length > 100) {
+        throw new Error('Email demasiado largo (máximo 100 caracteres)');
       }
       
       return true;
