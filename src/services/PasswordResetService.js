@@ -22,8 +22,8 @@ class PasswordResetService {
         return true; // Siempre devolvemos true por seguridad
       }
 
-      // Verificar si la cuenta está verificada
-      if (!user.verified) {
+      // Verificar si la cuenta está verificada (campo correcto es 'enabled')
+      if (!user.enabled) {
         // Por seguridad, no revelamos el estado de verificación, pero no enviamos email
         this.logSuspiciousActivity(email, 'Account not verified', ipAddress);
         return true; // Siempre devolvemos true por seguridad
