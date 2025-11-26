@@ -168,18 +168,10 @@ class EmailService {
             </div>
             
             <div class="instructions">
-                <h3>🔗 Opción 1: Verificación automática</h3>
+                <h3>🔗 Verificación automática</h3>
                 <p>Haz clic en el botón verde para verificar tu cuenta instantáneamente:</p>
             </div>
             <a href="${verificationUrl}" class="button">✅ Verificar mi cuenta ahora</a>
-            
-            <div class="divider"></div>
-            
-            <div class="instructions">
-                <h3>🔑 Opción 2: Código manual</h3>
-                <p>Si el botón no funciona, copia este código en la aplicación:</p>
-            </div>
-            <div class="token">${token}</div>
             
             <div class="instructions">
                 <h3>⏱️ Información importante</h3>
