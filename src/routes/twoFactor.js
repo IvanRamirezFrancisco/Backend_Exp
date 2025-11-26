@@ -490,6 +490,93 @@ router.post('/sms/setup/send-code', authenticateToken, requireUser, async (req, 
   }
 });
 
+// POST /api/2fa/sms/enable-existing - Habilitar SMS 2FA usando número registrado
+router.post('/sms/enable-existing', authenticateToken, requireUser, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verificar que el usuario tenga un número registrado
+    if (!user.phone || user.phone.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'No phone number registered. Please update your phone number first.',
+        requiresPhoneUpdate: true
+      });
+    }
+
+    // Usar el número existente para habilitar SMS 2FA
+    await TwoFactorService.enableSmsTwoFactor(req.user.id, user.phone);
+    
+    res.json({
+      success: true,
+      message: `SMS verification code sent to ${user.phone}`,
+      phoneNumber: user.phone
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// POST /api/2fa/sms/update-phone - Actualizar número de teléfono y habilitar SMS
+router.post('/sms/update-phone', authenticateToken, requireUser, async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber || phoneNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    // Verificar que el número sea válido
+    const TextBeltService = require('../services/TextBeltService');
+    if (!TextBeltService.isValidPhoneNumber(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number format'
+      });
+    }
+
+    // Actualizar el número en el perfil del usuario
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Actualizar número y enviar código de verificación
+    const formattedPhone = TextBeltService.cleanPhoneNumber(phoneNumber);
+    await user.update({ phone: formattedPhone });
+    
+    // Habilitar SMS 2FA con el nuevo número
+    await TwoFactorService.enableSmsTwoFactor(req.user.id, formattedPhone);
+    
+    res.json({
+      success: true,
+      message: `Phone number updated and SMS verification code sent to ${formattedPhone}`,
+      phoneNumber: formattedPhone
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 // POST /api/2fa/sms/setup/verify-code - Confirmar configuración SMS
 router.post('/sms/setup/verify-code', authenticateToken, requireUser, async (req, res) => {
   try {

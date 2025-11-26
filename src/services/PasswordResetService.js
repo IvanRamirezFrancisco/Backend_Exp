@@ -5,13 +5,27 @@ const EmailService = require('./EmailService');
 
 class PasswordResetService {
   // Solicitar reset de contraseña
-  async requestPasswordReset(email) {
+  async requestPasswordReset(email, ipAddress = null) {
     try {
+      // Verificar límite de intentos (protección anti-spam)
+      const rateLimitOk = await this.checkResetRateLimit(email);
+      if (!rateLimitOk) {
+        // No revelamos que se alcanzó el límite, por seguridad
+        return true;
+      }
+
       // Verificar si el usuario existe
       const user = await User.findOne({ where: { email } });
       if (!user) {
         // Por seguridad, no revelamos si el email existe o no
-        console.log(`Intento de reset para email no registrado: ${email}`);
+        this.logSuspiciousActivity(email, 'Email not registered', ipAddress);
+        return true; // Siempre devolvemos true por seguridad
+      }
+
+      // Verificar si la cuenta está verificada
+      if (!user.verified) {
+        // Por seguridad, no revelamos el estado de verificación, pero no enviamos email
+        this.logSuspiciousActivity(email, 'Account not verified', ipAddress);
         return true; // Siempre devolvemos true por seguridad
       }
 
@@ -53,6 +67,45 @@ class PasswordResetService {
     } catch (error) {
       console.error('Error al procesar solicitud de reset:', error.message);
       return true; // Por seguridad, siempre devolvemos true
+    }
+  }
+
+  // Registrar intentos sospechosos de password reset para análisis de seguridad
+  logSuspiciousActivity(email, reason, ipAddress = null) {
+    const timestamp = new Date().toISOString();
+    console.warn(`[SECURITY ALERT] ${timestamp} - Password reset attempt: ${reason} | Email: ${email} | IP: ${ipAddress || 'Unknown'}`);
+    
+    // En producción, esto podría guardarse en una base de datos separada 
+    // o enviarse a un sistema de monitoreo de seguridad
+    return true;
+  }
+
+  // Verificar límite de intentos de reset por email (prevención de spam)
+  async checkResetRateLimit(email) {
+    try {
+      const user = await User.findOne({ where: { email } });
+      if (!user) return true; // Si no existe el usuario, no aplicamos límite
+
+      // Verificar si ya tiene tokens activos recientes (últimos 15 minutos)
+      const recentTokens = await PasswordResetToken.count({
+        where: {
+          user_id: user.id,
+          created_at: {
+            [require('sequelize').Op.gte]: new Date(Date.now() - 15 * 60 * 1000) // 15 minutos
+          }
+        }
+      });
+
+      // Máximo 3 intentos por email en 15 minutos
+      if (recentTokens >= 3) {
+        this.logSuspiciousActivity(email, 'Rate limit exceeded - too many reset attempts');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error verificando rate limit:', error.message);
+      return true; // En caso de error, permitimos el intento
     }
   }
 

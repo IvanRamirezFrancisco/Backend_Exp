@@ -401,18 +401,7 @@ class EmailService {
             margin: 20px 0;
             font-weight: bold;
         }
-        .token {
-            background-color: #f1f1f1;
-            padding: 15px;
-            font-family: monospace;
-            font-size: 18px;
-            text-align: center;
-            margin: 20px 0;
-            border-radius: 5px;
-            border: 2px solid #e74c3c;
-            color: #333;
-            word-break: break-all;
-        }
+
         .warning {
             color: #e74c3c;
             font-size: 14px;
@@ -439,15 +428,12 @@ class EmailService {
         <div class="content">
             <h2>Hola ${firstName}</h2>
             <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en AuthSystem.</p>
+            
+            <p>Para restablecer tu contraseña, haz clic en el siguiente botón:</p>
 
-            <h3>Opción 1: Click en el enlace</h3>
             <a href="${resetUrl}" class="button">Restablecer Contraseña</a>
 
-            <h3>Opción 2: Usa este token</h3>
-            <div class="token">${token}</div>
-            <p>Copia y pega este token en la aplicación para restablecer tu contraseña.</p>
-
-            <p><strong>Este enlace y token expiran en 1 hora.</strong></p>
+            <p><strong>Este enlace expira en 1 hora.</strong></p>
 
             <div class="warning">
                 <strong>🛡️ Importante:</strong><br>

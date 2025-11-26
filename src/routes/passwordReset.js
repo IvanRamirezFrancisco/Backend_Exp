@@ -31,12 +31,17 @@ router.post('/forgot-password', [
       });
     }
 
-    const success = await PasswordResetService.requestPasswordReset(email);
+    // Obtener IP del usuario para logging de seguridad
+    const userIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
+                  (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+                  req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'Unknown';
+
+    const success = await PasswordResetService.requestPasswordReset(email, userIP);
 
     // Por seguridad, siempre devolvemos el mismo mensaje independientemente de si el email existe
     return res.json({
       success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación en tu bandeja de entrada.'
+      message: 'Si el email está registrado y verificado, recibirás un enlace de recuperación en tu bandeja de entrada.'
     });
 
   } catch (error) {
