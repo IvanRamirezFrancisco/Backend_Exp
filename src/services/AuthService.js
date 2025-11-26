@@ -7,7 +7,7 @@ const EmailService = require('./EmailService');
 class AuthService {
   // Registrar usuario - equivalente a Spring Boot
   async registerUser(userData) {
-    const { firstName, lastName, email, password } = userData;
+    const { firstName, lastName, email, password, phone } = userData;
 
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ where: { email } });
@@ -25,6 +25,7 @@ class AuthService {
       last_name: lastName,
       email: email,
       password: hashedPassword,
+      phone: phone || null, // Guardar teléfono si fue proporcionado
       enabled: false, // Usuario debe verificar email primero
       email_enabled: true // Habilitar 2FA por email por defecto
     });

@@ -90,6 +90,7 @@ class JwtUtils {
         email: user.email,
         firstName: user.first_name || user.firstName,
         lastName: user.last_name || user.lastName,
+        phone: user.phone, // Incluir el número de teléfono
         twoFactorEnabled: user.two_factor_enabled || user.twoFactorEnabled,
         googleAuthEnabled: user.google_auth_enabled || user.googleAuthEnabled,
         smsEnabled: user.sms_enabled || user.smsEnabled,
@@ -111,6 +112,7 @@ class JwtUtils {
         email: user.email,
         firstName: user.first_name || user.firstName,
         lastName: user.last_name || user.lastName,
+        phone: user.phone, // Incluir el número de teléfono
         twoFactorEnabled: user.two_factor_enabled || user.twoFactorEnabled,
         googleAuthEnabled: user.google_auth_enabled || user.googleAuthEnabled,
         smsEnabled: user.sms_enabled || user.smsEnabled,

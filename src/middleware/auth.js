@@ -50,6 +50,7 @@ const authenticateToken = async (req, res, next) => {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
+      phone: user.phone, // Incluir el número de teléfono
       roles: user.roles?.map(role => role.name) || [],
       twoFactorEnabled: user.two_factor_enabled
     };
@@ -97,6 +98,7 @@ const optionalAuth = async (req, res, next) => {
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
+          phone: user.phone, // Incluir el número de teléfono
           roles: user.roles?.map(role => role.name) || [],
           twoFactorEnabled: user.two_factor_enabled
         };
