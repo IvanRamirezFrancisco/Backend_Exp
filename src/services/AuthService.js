@@ -95,8 +95,8 @@ class AuthService {
 
     const roles = user.roles?.map(role => role.name) || ['ROLE_USER'];
 
-    // Si tiene Google Authenticator habilitado, requiere 2FA
-    if (user.google_auth_enabled) {
+    // Si tiene algún método 2FA habilitado, requiere 2FA
+    if (user.two_factor_enabled && (user.google_auth_enabled || user.sms_enabled || user.email_enabled)) {
       return JwtUtils.generate2FAResponse(user, roles);
     }
 

@@ -230,11 +230,13 @@ class TwoFactorService {
   async enableEmailTwoFactor(userId) {
     await User.update(
       { 
-        email_enabled: true,
-        two_factor_enabled: true
+        email_enabled: true
       },
       { where: { id: userId } }
     );
+
+    // Actualizar el estado general de 2FA
+    await this.updateTwoFactorStatus(userId);
   }
 
   // Habilitar 2FA por SMS
@@ -255,8 +257,7 @@ class TwoFactorService {
     await User.update(
       { 
         phone: formattedPhone,
-        sms_enabled: false, // Se habilitará después de verificar
-        two_factor_enabled: true
+        sms_enabled: false // Se habilitará después de verificar
       },
       { where: { id: userId } }
     );
@@ -283,11 +284,13 @@ class TwoFactorService {
     // Confirmar habilitación
     await User.update(
       { 
-        sms_enabled: true,
-        two_factor_type: 'SMS'
+        sms_enabled: true
       },
       { where: { id: userId } }
     );
+
+    // Actualizar el estado general de 2FA
+    await this.updateTwoFactorStatus(userId);
 
     return true;
   }
@@ -421,12 +424,13 @@ class TwoFactorService {
     // Habilitar Google Authenticator
     await User.update(
       { 
-        google_auth_enabled: true,
-        two_factor_enabled: true,
-        two_factor_type: 'GOOGLE_AUTHENTICATOR'
+        google_auth_enabled: true
       },
       { where: { id: userId } }
     );
+
+    // Actualizar el estado general de 2FA
+    await this.updateTwoFactorStatus(userId);
 
     return true;
   }
@@ -435,15 +439,16 @@ class TwoFactorService {
   async disableTwoFactor(userId) {
     await User.update(
       { 
-        two_factor_enabled: false,
         google_auth_enabled: false,
         sms_enabled: false,
         email_enabled: false,
-        google_auth_secret: null,
-        two_factor_type: null
+        google_auth_secret: null
       },
       { where: { id: userId } }
     );
+
+    // Actualizar el estado general de 2FA (debería quedar en false)
+    await this.updateTwoFactorStatus(userId);
   }
 
   // Deshabilitar método específico
@@ -468,17 +473,39 @@ class TwoFactorService {
 
     await User.update(updates, { where: { id: userId } });
 
-    // Verificar si aún hay algún método habilitado
+    // Actualizar el estado general de 2FA
+    await this.updateTwoFactorStatus(userId);
+  }
+
+  // Actualizar el estado general de 2FA basado en métodos individuales
+  async updateTwoFactorStatus(userId) {
     const user = await User.findByPk(userId);
-    if (!user.google_auth_enabled && !user.sms_enabled && !user.email_enabled) {
-      await User.update(
-        { 
-          two_factor_enabled: false,
-          two_factor_type: null
-        },
-        { where: { id: userId } }
-      );
+    if (!user) {
+      throw new Error('Usuario no encontrado');
     }
+
+    // Verificar si al menos un método está habilitado
+    const hasAnyMethod = user.google_auth_enabled || user.sms_enabled || user.email_enabled;
+    
+    // Determinar el tipo principal (el primero que esté activo)
+    let primaryType = null;
+    if (user.google_auth_enabled) {
+      primaryType = 'GOOGLE_AUTHENTICATOR';
+    } else if (user.sms_enabled) {
+      primaryType = 'SMS';
+    } else if (user.email_enabled) {
+      primaryType = 'EMAIL';
+    }
+
+    await User.update(
+      { 
+        two_factor_enabled: hasAnyMethod,
+        two_factor_type: primaryType
+      },
+      { where: { id: userId } }
+    );
+
+    console.log(`✅ Estado 2FA actualizado para usuario ${userId}: enabled=${hasAnyMethod}, type=${primaryType}`);
   }
 
   // Obtener métodos 2FA disponibles
